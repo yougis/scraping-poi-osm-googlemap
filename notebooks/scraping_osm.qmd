@@ -1,0 +1,60 @@
+---
+title: "Scraping des POI : OpenStreetMap et Google Maps"
+subtitle: Tâche sous-évaluée mais pourtant stratégique dans les SIG
+author: "Hugo Roussaffa"
+lang: fr
+translations: !expr (read_yaml(¨translation.yaml¨)) 
+date: today
+format:
+  html: 
+    toc: true
+    toc-title: "Sommaire"
+    number-sections: true
+    code-fold: true
+jupyter: python3
+---
+
+
+## 📌 Introduction
+Explorons comment extraire des **points d’intérêt (POI)** depuis **OpenStreetMap** et **Google Maps**, puis les nettoyer et les stocker dans une base **PostGIS** en vue d'être analysé.
+
+:::{.column-page}
+```{python}
+#| echo: false
+#| warning: false
+#| label: fig-map-osm-hospitals
+
+import folium
+import geopandas as gpd
+from shapely.geometry import Point
+import json
+
+# Open and read the JSON file
+with open('../data/hospitals_paris.json', 'r') as file:
+    data = json.load(file)
+
+# Convertir les données JSON en DataFrame Pandas
+hospitals = [
+    (el["lat"], el["lon"], el["tags"].get("name", "Inconnu"))
+    for el in data["elements"]
+]
+
+df = gpd.GeoDataFrame(hospitals, columns=["lat", "lon", "name"])
+df["geometry"] = df.apply(lambda row: Point(row["lon"], row["lat"]), axis=1)
+
+# Création de la carte centrée sur Paris
+m = folium.Map(location=[48.8566, 2.3522], zoom_start=12)
+
+# Ajout des points d'intérêt
+for _, row in df.iterrows():
+    folium.Marker(
+        location=[row["lat"], row["lon"]],
+        popup=row["name"],
+        icon=folium.Icon(color="blue", icon="info-sign")
+    ).add_to(m)
+
+# Afficher la carte
+m
+```
+
+:::

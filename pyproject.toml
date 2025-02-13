@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "scraping-poi-osm-googlemap"
+version = "0.1.0"
+description = "Capture and structuring of POIs from OSM and Google Maps, loading into PostGIS and finally GIS analysis. Serial project in 1/5 steps for portfolio."
+authors = ["Hugo Roussaffa <hugoroussaffa@gmail.com>"]
+license = "CC0 1.0 Universal"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+requests = "^2.32.3"
+pandas = "^2.2.3"
+geopandas = "^1.0.1"
+folium = "^0.19.4"
+psycopg2-binary = "^2.9.10"
+quarto = "^0.1.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

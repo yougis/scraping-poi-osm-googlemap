@@ -1,0 +1,317 @@
+{
+    "version": 0.6,
+    "generator": "Overpass API 0.7.62.4 2390de5a",
+    "osm3s": {
+        "timestamp_osm_base": "2025-02-13T11:56:15Z",
+        "timestamp_areas_base": "2024-12-31T00:49:33Z",
+        "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+    },
+    "elements": [
+        {
+            "type": "node",
+            "id": 977194624,
+            "lat": 48.8435512,
+            "lon": 2.3549103,
+            "tags": {
+                "amenity": "hospital",
+                "check_date": "2024-03-24",
+                "fax": "+33 1 43 37 73 98",
+                "healthcare": "hospital",
+                "healthcare:speciality": "intensive",
+                "name": "Clinique Geoffroy Saint-Hilaire",
+                "operator": "Ramsay Sant\u00e9",
+                "operator:type": "private",
+                "operator:wikidata": "Q3123085",
+                "operator:wikipedia": "fr:Ramsay Sant\u00e9",
+                "phone": "+33 1 44 08 40 00",
+                "ref:FR:FINESS": "750300071",
+                "ref:FR:SIRET": "56209797200011",
+                "type:FR:FINESS": "128",
+                "website": "https://clinique-geoffroy-saint-hilaire-paris.ramsaygds.fr/"
+            }
+        },
+        {
+            "type": "node",
+            "id": 1462112612,
+            "lat": 48.8604665,
+            "lon": 2.2777715,
+            "tags": {
+                "amenity": "hospital",
+                "healthcare": "hospital",
+                "name": "Clinique de la Muette",
+                "ref:FR:FINESS": "750300840",
+                "source:ref:FR:FINESS": "data.gouv.fr:Minist\u00e8re des Affaires sociales, de la Sant\u00e9 et des Droits des Femmes - 12/2015",
+                "type:FR:FINESS": "365",
+                "website": "https://www.clinique-delamuette.fr/"
+            }
+        },
+        {
+            "type": "node",
+            "id": 1684818336,
+            "lat": 48.8426449,
+            "lon": 2.3435197,
+            "tags": {
+                "amenity": "hospital",
+                "healthcare": "hospital",
+                "name": "Institut Curie",
+                "ref:FR:FINESS": "750160012",
+                "type:FR:FINESS": "131",
+                "wikidata": "Q2451973"
+            }
+        },
+        {
+            "type": "node",
+            "id": 2089723521,
+            "lat": 48.8781498,
+            "lon": 2.2912675,
+            "tags": {
+                "amenity": "hospital",
+                "contact:website": "http://www.hopital-marmottan.fr/",
+                "healthcare": "hospital",
+                "name": "H\u00f4pital Marmottan",
+                "ref:FR:FINESS": "750006249",
+                "source": "Le minist\u00e8re des solidarit\u00e9s et de la sant\u00e9 - 03/2019",
+                "wikidata": "Q2945875"
+            }
+        },
+        {
+            "type": "node",
+            "id": 2924827263,
+            "lat": 48.8856585,
+            "lon": 2.3878153,
+            "tags": {
+                "amenity": "hospital",
+                "check_date": "2024-03-18",
+                "healthcare": "hospital",
+                "name": "Clinique Canal de l'Ourcq",
+                "operator": "Korian",
+                "ref:FR:FINESS": "750003378",
+                "source": "survey",
+                "source:ref:FR:FINESS": "data.gouv.fr:Minist\u00e8re des Affaires sociales et de la Sant\u00e9 - 2014-05-05",
+                "type:FR:FINESS": "109",
+                "website": "http://www.groupe-korian.com/"
+            }
+        },
+        {
+            "type": "node",
+            "id": 3105749276,
+            "lat": 48.8747235,
+            "lon": 2.4028142,
+            "tags": {
+                "amenity": "hospital",
+                "healthcare": "hospital",
+                "name": "H\u00f4pital de Jour pour Enfants",
+                "operator": "L'\u00c9lan retrouv\u00e9",
+                "ref:FR:FINESS": "750007999",
+                "source": "survey",
+                "source:ref:FR:FINESS": "data.gouv.fr:Minist\u00e8re des Affaires sociales et de la Sant\u00e9 - 2014-05-05",
+                "type:FR:FINESS": "365",
+                "website": "http://www.elan-retrouve.fr/hopital-jour-enfants-haxo.php"
+            }
+        },
+        {
+            "type": "node",
+            "id": 3231694316,
+            "lat": 48.8852964,
+            "lon": 2.3750552,
+            "tags": {
+                "amenity": "hospital",
+                "healthcare": "hospital",
+                "name": "H\u00f4pital de jour Georges Vacola",
+                "ref:FR:FINESS": "750810384",
+                "source": "survey",
+                "type:FR:FINESS": "161",
+                "website": "http://www.vacola.asso-gd.fr/"
+            }
+        },
+        {
+            "type": "node",
+            "id": 3501719723,
+            "lat": 48.8726355,
+            "lon": 2.3503654,
+            "tags": {
+                "amenity": "hospital",
+                "healthcare": "hospital",
+                "name": "H\u00f4pital Maison Blanche",
+                "phone": "+33 1 40 22 12 69",
+                "ref:FR:FINESS": "750023749",
+                "source": "cadastre-dgi-fr source : Direction G\u00e9n\u00e9rale des Imp\u00f4ts - Cadastre. Mise \u00e0 jour : 2010/local_knowledge",
+                "website": "http://www.ch-maison-blanche.fr/"
+            }
+        },
+        {
+            "type": "node",
+            "id": 4416374303,
+            "lat": 48.8355335,
+            "lon": 2.3399561,
+            "tags": {
+                "amenity": "hospital",
+                "healthcare": "hospital",
+                "name": "Clinique Port-Royal",
+                "ref:FR:FINESS": "750038739",
+                "type:FR:FINESS": "109"
+            }
+        },
+        {
+            "type": "node",
+            "id": 5213203524,
+            "lat": 48.8800182,
+            "lon": 2.304237,
+            "tags": {
+                "amenity": "hospital",
+                "contact:city": "Paris",
+                "contact:housenumber": "21",
+                "contact:phone": "+33 1 48 88 25 25",
+                "contact:postcode": "75017",
+                "contact:street": "Rue de Chazelles",
+                "contact:website": "http://www.clinique-monceau.com/",
+                "healthcare": "hospital",
+                "name": "Clinique Internationale du Parc Monceau",
+                "name:en": "Clinical International du Parc Monceau",
+                "opening_hours": "24/7",
+                "ref:FR:FINESS": "750300915",
+                "type:FR:FINESS": "365",
+                "wheelchair": "yes"
+            }
+        },
+        {
+            "type": "node",
+            "id": 7556925407,
+            "lat": 48.8604049,
+            "lon": 2.2809606,
+            "tags": {
+                "amenity": "hospital",
+                "contact:city": "Paris",
+                "contact:fax": "+33 1 40 72 40 68",
+                "contact:housenumber": "62",
+                "contact:phone": "+33 1 40 72 40 40",
+                "contact:postcode": "75016",
+                "contact:street": "Rue de la Tour",
+                "healthcare": "hospital",
+                "name": "Clinique du Trocad\u00e9ro",
+                "ref:FR:FINESS": "750300881",
+                "ref:FR:SIRET": "35050813100025",
+                "source": "Le minist\u00e8re des solidarit\u00e9s et de la sant\u00e9 - 03/2019",
+                "type:FR:FINESS": "128"
+            }
+        },
+        {
+            "type": "node",
+            "id": 7568123336,
+            "lat": 48.8416639,
+            "lon": 2.3980305,
+            "tags": {
+                "amenity": "hospital",
+                "check_date": "2023-04-02",
+                "fax": "+33144687226",
+                "healthcare": "hospital",
+                "name": "Unit\u00e9 de Soins de Suite de la Fondation Rothschild",
+                "phone": "+33144687298",
+                "ref:FR:FINESS": "750042830",
+                "ref:FR:SIRET": "77568109100127",
+                "source": "Le minist\u00e8re des solidarit\u00e9s et de la sant\u00e9 - 03/2019",
+                "type:FR:FINESS": "109"
+            }
+        },
+        {
+            "type": "node",
+            "id": 7603808418,
+            "lat": 48.8647994,
+            "lon": 2.3573815,
+            "tags": {
+                "addr:city": "Paris",
+                "addr:housenumber": "14",
+                "addr:postcode": "75003",
+                "addr:street": "Rue Volta",
+                "amenity": "hospital",
+                "healthcare": "hospital",
+                "name": "Centre de sant\u00e9 Yvonne Pouzin",
+                "old_name": "Centre Au Maire Volta",
+                "opening_hours": "Mo-Fr 08:30-19:00",
+                "operator": "Ville de Paris",
+                "phone": "+33 1 48 87 49 87",
+                "website": "https://paris.fr/centresdesante",
+                "wheelchair": "yes",
+                "wheelchair:description:fr": "Centre de plain pied"
+            }
+        },
+        {
+            "type": "node",
+            "id": 7921483847,
+            "lat": 48.8675555,
+            "lon": 2.2969191,
+            "tags": {
+                "amenity": "hospital",
+                "healthcare": "hospital",
+                "name": "Clinique Bizet",
+                "website": "https://www.bizet-cliniques-paris.fr/"
+            }
+        },
+        {
+            "type": "node",
+            "id": 9073838043,
+            "lat": 48.8310461,
+            "lon": 2.3119306,
+            "tags": {
+                "addr:housenumber": "1",
+                "addr:street": "Rue de Ridder",
+                "amenity": "hospital",
+                "contact:city": "Paris",
+                "contact:housenumber": "1",
+                "contact:postcode": "75014",
+                "contact:street": "Rue de Ridder",
+                "healthcare": "physiotherapist",
+                "healthcare:speciality": "kinesitherapy",
+                "name": "Cabinet de Kin\u00e9sith\u00e9rapie",
+                "opening_hours": "Mo-Fr 9:00-12:00 14:00-19:00",
+                "operator": "Fran\u00e7ois Gohon",
+                "phone": "09 67 00 23 67"
+            }
+        },
+        {
+            "type": "node",
+            "id": 10594499020,
+            "lat": 48.8592105,
+            "lon": 2.3411286,
+            "tags": {
+                "addr:city": "Paris",
+                "addr:housenumber": "17",
+                "addr:postcode": "75001",
+                "addr:street": "Rue des Pr\u00eatres Saint-Germain l'Auxerrois",
+                "amenity": "hospital",
+                "healthcare": "hospital",
+                "name": "Clinique du Louvre"
+            }
+        },
+        {
+            "type": "node",
+            "id": 10736464005,
+            "lat": 48.8419867,
+            "lon": 2.3096451,
+            "tags": {
+                "addr:housenumber": "211",
+                "addr:postcode": "75015",
+                "addr:street": "Rue de Vaugirard",
+                "amenity": "hospital",
+                "healthcare": "hospital",
+                "name": "Centre m\u00e9dical de l'institut Pasteur",
+                "opening_hours": "Su-Fr 09:00-17:00",
+                "phone": "0145688088",
+                "website": "https://www.pasteur.fr"
+            }
+        },
+        {
+            "type": "node",
+            "id": 12198581893,
+            "lat": 48.8301458,
+            "lon": 2.3102741,
+            "tags": {
+                "alt_name": "Institut du Glaucome",
+                "amenity": "hospital",
+                "healthcare": "hospital",
+                "healthcare:speciality": "ophthalmology",
+                "name": "Institut de la Vue Paris Saint-Joseph"
+            }
+        }
+    ]
+}
