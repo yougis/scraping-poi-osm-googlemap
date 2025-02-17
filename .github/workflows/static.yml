@@ -1,3 +1,7 @@
+permissions:
+  contents: write
+
+
 name: déployer sur github pages
 
 on:
