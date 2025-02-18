@@ -16,18 +16,60 @@ jupyter: python3
 
 
 ## 📌 Introduction
-Explorons comment extraire des **points d’intérêt (POI)** depuis **OpenStreetMap** et **Google Maps**, puis les nettoyer et les stocker dans une base **PostGIS** en vue d'être analysé.
 
-:::{.column-page}
+Je vous présente ici comment j´extrais des **points d’intérêt (POI)** depuis **OpenStreetMap**^[[Open Street Map](https://www.openstreetmap.org/ ainsi que **Google Maps**, puis comment je les nettoies et les stock dans une base **PostGIS** pour faciliter des analyses par la suite.
+
+## Scraper les données
+
+Tout d'abord allons recuperer les données Open Street Map (OSM))]
 ```{python}
-#| echo: false
-#| warning: false
-#| label: fig-map-osm-hospitals
 
-import folium
-import geopandas as gpd
-from shapely.geometry import Point
+#| warning: false
+
+import requests
 import json
+
+# Définition de la requête Overpass API
+overpass_url = "http://overpass-api.de/api/interpreter"
+query = """
+[out:json];
+area[name="Paris"]->.searchArea;
+node["amenity"="hospital"](area.searchArea);
+out body;
+"""
+
+# Exécuter la requête
+response = requests.get(overpass_url, params={'data': query})
+data = response.json()
+
+# Sauvegarder les données
+with open("../data/hospitals_paris.json", "w") as f:
+    json.dump(data, f, indent=4)
+
+print("Code execution : Le scraping est terminé, les données sont sauvegardées au format json!")
+
+ojs_define(data = data)
+```
+
+Voici le premier résultat obtenu lors de ma requête :
+
+```{ojs}
+
+//| warning: false
+//| label: fig-osm-scraping
+//| fig-cap: Echantillon de donnée OSM
+data.elements[0]
+```
+
+
+Evidement il n´y a pas qu'un seul objet. Il y en a exactement ´{python} count(data.elements)´ objet et nous allons traiter tout ça !
+
+## Nettoyer les données
+
+LLes tags disponibles pour les objets 'hopitaux' ne sont pas tous interessant et certains méritent des corrections. C'est maintenant que l'on soccupe de cela. Nous pourrons aussi prévoir d'autre modifications plus tard en base de données si nous sommes dans une stratégie orientée ELT et non pas ETL^[[Documentation ELT vs ETL](https://aws.amazon.com/fr/compare/the-difference-between-etl-and-elt/)].
+
+```{python}
+import numpy as np
 
 # Open and read the JSON file
 with open('../data/hospitals_paris.json', 'r') as file:
@@ -35,21 +77,109 @@ with open('../data/hospitals_paris.json', 'r') as file:
 
 # Convertir les données JSON en DataFrame Pandas
 hospitals = [
-    (el["lat"], el["lon"], el["tags"].get("name", "Inconnu"))
+    (
+        el["lat"], 
+        el["lon"], 
+        el["tags"].get("name", np.nan),
+        el["tags"].get("amenity", np.nan),
+        el["tags"].get("check_date", np.nan),
+        el["tags"].get("fax", np.nan),
+        el["tags"].get("healthcare", np.nan),
+        el["tags"].get("healthcare:speciality", np.nan),
+        el["tags"].get("operator", np.nan),
+        el["tags"].get("operator:type", np.nan),
+        el["tags"].get("operator:wikidata", np.nan),
+        el["tags"].get("operator:wikipedia", np.nan),
+        el["tags"].get("phone", np.nan),
+        el["tags"].get("ref:FR:FINESS", np.nan),
+        el["tags"].get("ref:FR:SIRET", np.nan),
+        el["tags"].get("type:FR:FINESS", np.nan),
+        el["tags"].get("website", np.nan)
+   
+    )
     for el in data["elements"]
 ]
 
-df = gpd.GeoDataFrame(hospitals, columns=["lat", "lon", "name"])
+```
+
+Afin de rendre la manoeuvre aisée dans des traitements plus complexes à venir, il convient de convertir le flux JSON en Dataframe **Pandas** et comme nous traitons ici des données géographiquea **Geopandas**^[[GeoPandas documentation](https://geopandas.org/en/stable/index.html)] est le format idéal.
+
+
+```{python}
+#| echo: false
+#| warning: false
+#| label: fig-table-osm-hospitals
+#| fig-cap: Données Open Street Map (OSM)
+
+import geopandas as gpd
+from shapely.geometry import Point
+import json
+
+
+df = gpd.GeoDataFrame(hospitals, columns=[
+    "lat", "lon", "name", "amenity", "check_date", "fax", "healthcare", 
+    "healthcare_speciality", "operator", "operator_type", "operator_wikidata", 
+    "operator_wikipedia", "phone", "ref_FR_FINESS", "ref_FR_SIRET", 
+    "type_FR_FINESS", "website"
+])
 df["geometry"] = df.apply(lambda row: Point(row["lon"], row["lat"]), axis=1)
+
+# Retirer les colonnes "lat" et "lon"
+df = df.drop(columns=["lat", "lon"])
+
+```
+
+
+### Consulter les données dans une table
+
+L'affichage des données dans une table permet un premier niveau de consultation. 
+
+```{python}
+
+from IPython.display import Markdown
+from tabulate import tabulate
+Markdown(tabulate(
+  df, 
+  headers=df.columns
+))
+
+```
+
+### Afficher les données sur une carte
+Ces donnés peuvent être facilement affichées sur une carte.
+
+:::{.column-page}
+```{python}
+#| echo: false
+#| warning: false
+#| label: fig-map-osm-hospitals
+#| fig-cap: Carte des POI issus d´OSM
+import folium
 
 # Création de la carte centrée sur Paris
 m = folium.Map(location=[48.8566, 2.3522], zoom_start=12)
 
 # Ajout des points d'intérêt
 for _, row in df.iterrows():
+    popup_content = f"""
+    <div style="text-align: center;">
+        <h1>{row['name']}</h1>
+    </div>
+    <div style="text-align: left;">
+        <b>Phone:</b> {row['phone']}<br>
+        <b>Fax:</b> {row['fax']}<br>
+        <b>Ref FR FINESS:</b> {row['ref_FR_FINESS']}<br>
+        <b>Ref FR SIRET:</b> {row['ref_FR_SIRET']}<br>
+        <b>Type FR FINESS:</b> {row['type_FR_FINESS']}<br>
+        <b>Website:</b> <a href="{row['website']}" target="_blank">{row['website']}</a>
+    </div>
+    """
+    popup = folium.Popup(popup_content,
+                     min_width=500,
+                     max_width=500)
     folium.Marker(
-        location=[row["lat"], row["lon"]],
-        popup=row["name"],
+        location=[row.geometry.xy[1][0], row.geometry.xy[0][0]],
+        popup=popup,
         icon=folium.Icon(color="blue", icon="info-sign")
     ).add_to(m)
 
@@ -57,4 +187,20 @@ for _, row in df.iterrows():
 m
 ```
 
+
+### Cartographie d'ilot de chaleur
+```{python}
+#| echo: false
+#| warning: false
+#| label: fig-heatmap-osm-hospitals
+#| fig-cap: Ilôt de chaleur des hôpitaux et cliniques de Paris
+from folium import plugins
+
+map = folium.Map(location=[48.8566, 2.3522], zoom_start=12, tiles="Cartodb dark_matter")
+heat_data = [[point.xy[1][0], point.xy[0][0]] for point in df.geometry]
+
+plugins.HeatMap(heat_data).add_to(map)
+
+map
+```
 :::

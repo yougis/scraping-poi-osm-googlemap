@@ -21,6 +21,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -34,6 +68,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="scraping_osm_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="scraping_osm_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="scraping_osm_files/libs/bootstrap/bootstrap-def314685997ae775ed87effcd90cd1a.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script type="module" src="scraping_osm_files/libs/quarto-ojs/quarto-ojs-runtime.js"></script>
+<link href="scraping_osm_files/libs/quarto-ojs/quarto-ojs.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
 
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
@@ -50,6 +86,12 @@ ul.task-list li input[type="checkbox"] {
    
   <ul>
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> 📌 Introduction</a></li>
+  <li><a href="#scraper-les-données" id="toc-scraper-les-données" class="nav-link" data-scroll-target="#scraper-les-données"><span class="header-section-number">2</span> Scraper les données</a></li>
+  <li><a href="#nettoyer-les-données" id="toc-nettoyer-les-données" class="nav-link" data-scroll-target="#nettoyer-les-données"><span class="header-section-number">3</span> Nettoyer les données</a>
+  <ul class="collapse">
+  <li><a href="#consulter-les-données-dans-une-table" id="toc-consulter-les-données-dans-une-table" class="nav-link" data-scroll-target="#consulter-les-données-dans-une-table"><span class="header-section-number">3.1</span> Consulter les données dans une table</a></li>
+  <li><a href="#afficher-les-données-sur-une-carte" id="toc-afficher-les-données-sur-une-carte" class="nav-link" data-scroll-target="#afficher-les-données-sur-une-carte"><span class="header-section-number">3.2</span> Afficher les données sur une carte</a></li>
+  </ul></li>
   </ul>
 </nav>
 </div>
@@ -75,7 +117,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Date de publication</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">13 février 2025</p>
+      <p class="date">18 février 2025</p>
     </div>
   </div>
   
@@ -87,25 +129,493 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Astuce
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Note that there are five types of callouts, including: <code>note</code>, <code>tip</code>, <code>warning</code>, <code>caution</code>, and <code>important</code>.</p>
-</div>
-</div>
-<section id="introduction" class="level2 page-columns page-full" data-number="1">
+<section id="introduction" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">1</span> 📌 Introduction</h2>
-<p>Explorons comment extraire des <strong>points d’intérêt (POI)</strong> depuis <strong>OpenStreetMap</strong> et <strong>Google Maps</strong>, puis les nettoyer et les stocker dans une base <strong>PostGIS</strong> en vue d’être analysé.</p>
+<p>Je vous présente ici comment j´extrais des <strong>points d’intérêt (POI)</strong> depuis <strong>OpenStreetMap</strong>^[[Open Street Map](https://www.openstreetmap.org/ ainsi que <strong>Google Maps</strong>, puis comment je les nettoies et les stock dans une base <strong>PostGIS</strong> pour faciliter des analyses par la suite.</p>
+</section>
+<section id="scraper-les-données" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="scraper-les-données"><span class="header-section-number">2</span> Scraper les données</h2>
+<p>Tout d’abord allons recuperer les données Open Street Map (OSM))]</p>
+<div id="2b27a870" class="cell" data-execution_count="1">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Définition de la requête Overpass API</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>overpass_url <span class="op">=</span> <span class="st">"http://overpass-api.de/api/interpreter"</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>query <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="st">[out:json];</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="st">area[name="Paris"]-&gt;.searchArea;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="st">node["amenity"="hospital"](area.searchArea);</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="st">out body;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Exécuter la requête</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>response <span class="op">=</span> requests.get(overpass_url, params<span class="op">=</span>{<span class="st">'data'</span>: query})</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> response.json()</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Sauvegarder les données</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"../data/hospitals_paris.json"</span>, <span class="st">"w"</span>) <span class="im">as</span> f:</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    json.dump(data, f, indent<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Code execution : Le scraping est terminé, les données sont sauvegardées au format json!"</span>)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>ojs_define(data <span class="op">=</span> data)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Code execution : Le scraping est terminé, les données sont sauvegardées au format json!</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<script type="ojs-define">{"contents": [{"name": "data", "value": {"version": 0.6, "generator": "Overpass API 0.7.62.5 1bd436f1", "osm3s": {"timestamp_osm_base": "2025-02-18T15:58:17Z", "timestamp_areas_base": "2024-12-31T00:49:33Z", "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."}, "elements": [{"type": "node", "id": 977194624, "lat": 48.8435512, "lon": 2.3549103, "tags": {"amenity": "hospital", "check_date": "2024-03-24", "fax": "+33 1 43 37 73 98", "healthcare": "hospital", "healthcare:speciality": "intensive", "name": "Clinique Geoffroy Saint-Hilaire", "operator": "Ramsay Sant\u00e9", "operator:type": "private", "operator:wikidata": "Q3123085", "operator:wikipedia": "fr:Ramsay Sant\u00e9", "phone": "+33 1 44 08 40 00", "ref:FR:FINESS": "750300071", "ref:FR:SIRET": "56209797200011", "type:FR:FINESS": "128", "website": "https://clinique-geoffroy-saint-hilaire-paris.ramsaygds.fr/"}}, {"type": "node", "id": 1462112612, "lat": 48.8604665, "lon": 2.2777715, "tags": {"amenity": "hospital", "healthcare": "hospital", "name": "Clinique de la Muette", "ref:FR:FINESS": "750300840", "source:ref:FR:FINESS": "data.gouv.fr:Minist\u00e8re des Affaires sociales, de la Sant\u00e9 et des Droits des Femmes - 12/2015", "type:FR:FINESS": "365", "website": "https://www.clinique-delamuette.fr/"}}, {"type": "node", "id": 1684818336, "lat": 48.8426449, "lon": 2.3435197, "tags": {"amenity": "hospital", "healthcare": "hospital", "name": "Institut Curie", "ref:FR:FINESS": "750160012", "type:FR:FINESS": "131", "wikidata": "Q2451973"}}, {"type": "node", "id": 2089723521, "lat": 48.8781498, "lon": 2.2912675, "tags": {"amenity": "hospital", "contact:website": "http://www.hopital-marmottan.fr/", "healthcare": "hospital", "name": "H\u00f4pital Marmottan", "ref:FR:FINESS": "750006249", "source": "Le minist\u00e8re des solidarit\u00e9s et de la sant\u00e9 - 03/2019", "wikidata": "Q2945875"}}, {"type": "node", "id": 2924827263, "lat": 48.8856585, "lon": 2.3878153, "tags": {"amenity": "hospital", "check_date": "2024-03-18", "healthcare": "hospital", "name": "Clinique Canal de l'Ourcq", "operator": "Korian", "ref:FR:FINESS": "750003378", "source": "survey", "source:ref:FR:FINESS": "data.gouv.fr:Minist\u00e8re des Affaires sociales et de la Sant\u00e9 - 2014-05-05", "type:FR:FINESS": "109", "website": "http://www.groupe-korian.com/"}}, {"type": "node", "id": 3105749276, "lat": 48.8747235, "lon": 2.4028142, "tags": {"amenity": "hospital", "healthcare": "hospital", "name": "H\u00f4pital de Jour pour Enfants", "operator": "L'\u00c9lan retrouv\u00e9", "ref:FR:FINESS": "750007999", "source": "survey", "source:ref:FR:FINESS": "data.gouv.fr:Minist\u00e8re des Affaires sociales et de la Sant\u00e9 - 2014-05-05", "type:FR:FINESS": "365", "website": "http://www.elan-retrouve.fr/hopital-jour-enfants-haxo.php"}}, {"type": "node", "id": 3231694316, "lat": 48.8852964, "lon": 2.3750552, "tags": {"amenity": "hospital", "healthcare": "hospital", "name": "H\u00f4pital de jour Georges Vacola", "ref:FR:FINESS": "750810384", "source": "survey", "type:FR:FINESS": "161", "website": "http://www.vacola.asso-gd.fr/"}}, {"type": "node", "id": 3501719723, "lat": 48.8726355, "lon": 2.3503654, "tags": {"amenity": "hospital", "healthcare": "hospital", "name": "H\u00f4pital Maison Blanche", "phone": "+33 1 40 22 12 69", "ref:FR:FINESS": "750023749", "source": "cadastre-dgi-fr source : Direction G\u00e9n\u00e9rale des Imp\u00f4ts - Cadastre. Mise \u00e0 jour : 2010/local_knowledge", "website": "http://www.ch-maison-blanche.fr/"}}, {"type": "node", "id": 4416374303, "lat": 48.8355335, "lon": 2.3399561, "tags": {"amenity": "hospital", "healthcare": "hospital", "name": "Clinique Port-Royal", "ref:FR:FINESS": "750038739", "type:FR:FINESS": "109"}}, {"type": "node", "id": 5213203524, "lat": 48.8800182, "lon": 2.304237, "tags": {"amenity": "hospital", "contact:city": "Paris", "contact:housenumber": "21", "contact:phone": "+33 1 48 88 25 25", "contact:postcode": "75017", "contact:street": "Rue de Chazelles", "contact:website": "http://www.clinique-monceau.com/", "healthcare": "hospital", "name": "Clinique Internationale du Parc Monceau", "name:en": "Clinical International du Parc Monceau", "opening_hours": "24/7", "ref:FR:FINESS": "750300915", "type:FR:FINESS": "365", "wheelchair": "yes"}}, {"type": "node", "id": 7556925407, "lat": 48.8604049, "lon": 2.2809606, "tags": {"amenity": "hospital", "contact:city": "Paris", "contact:fax": "+33 1 40 72 40 68", "contact:housenumber": "62", "contact:phone": "+33 1 40 72 40 40", "contact:postcode": "75016", "contact:street": "Rue de la Tour", "healthcare": "hospital", "name": "Clinique du Trocad\u00e9ro", "ref:FR:FINESS": "750300881", "ref:FR:SIRET": "35050813100025", "source": "Le minist\u00e8re des solidarit\u00e9s et de la sant\u00e9 - 03/2019", "type:FR:FINESS": "128"}}, {"type": "node", "id": 7568123336, "lat": 48.8416639, "lon": 2.3980305, "tags": {"amenity": "hospital", "check_date": "2023-04-02", "fax": "+33144687226", "healthcare": "hospital", "name": "Unit\u00e9 de Soins de Suite de la Fondation Rothschild", "phone": "+33144687298", "ref:FR:FINESS": "750042830", "ref:FR:SIRET": "77568109100127", "source": "Le minist\u00e8re des solidarit\u00e9s et de la sant\u00e9 - 03/2019", "type:FR:FINESS": "109"}}, {"type": "node", "id": 7603808418, "lat": 48.8647994, "lon": 2.3573815, "tags": {"addr:city": "Paris", "addr:housenumber": "14", "addr:postcode": "75003", "addr:street": "Rue Volta", "amenity": "hospital", "healthcare": "hospital", "name": "Centre de sant\u00e9 Yvonne Pouzin", "old_name": "Centre Au Maire Volta", "opening_hours": "Mo-Fr 08:30-19:00", "operator": "Ville de Paris", "phone": "+33 1 48 87 49 87", "website": "https://paris.fr/centresdesante", "wheelchair": "yes", "wheelchair:description:fr": "Centre de plain pied"}}, {"type": "node", "id": 7921483847, "lat": 48.8675555, "lon": 2.2969191, "tags": {"amenity": "hospital", "healthcare": "hospital", "name": "Clinique Bizet", "website": "https://www.bizet-cliniques-paris.fr/"}}, {"type": "node", "id": 9073838043, "lat": 48.8310461, "lon": 2.3119306, "tags": {"addr:housenumber": "1", "addr:street": "Rue de Ridder", "amenity": "hospital", "contact:city": "Paris", "contact:housenumber": "1", "contact:postcode": "75014", "contact:street": "Rue de Ridder", "healthcare": "physiotherapist", "healthcare:speciality": "kinesitherapy", "name": "Cabinet de Kin\u00e9sith\u00e9rapie", "opening_hours": "Mo-Fr 9:00-12:00 14:00-19:00", "operator": "Fran\u00e7ois Gohon", "phone": "09 67 00 23 67"}}, {"type": "node", "id": 10594499020, "lat": 48.8592105, "lon": 2.3411286, "tags": {"addr:city": "Paris", "addr:housenumber": "17", "addr:postcode": "75001", "addr:street": "Rue des Pr\u00eatres Saint-Germain l'Auxerrois", "amenity": "hospital", "healthcare": "hospital", "name": "Clinique du Louvre"}}, {"type": "node", "id": 10736464005, "lat": 48.8419867, "lon": 2.3096451, "tags": {"addr:housenumber": "211", "addr:postcode": "75015", "addr:street": "Rue de Vaugirard", "amenity": "hospital", "healthcare": "hospital", "name": "Centre m\u00e9dical de l'institut Pasteur", "opening_hours": "Su-Fr 09:00-17:00", "phone": "0145688088", "website": "https://www.pasteur.fr"}}, {"type": "node", "id": 12198581893, "lat": 48.8301458, "lon": 2.3102741, "tags": {"alt_name": "Institut du Glaucome", "amenity": "hospital", "healthcare": "hospital", "healthcare:speciality": "ophthalmology", "name": "Institut de la Vue Paris Saint-Joseph"}}]}}]}</script>
+</div>
+</div>
+<p>Voici le premier résultat obtenu lors de ma requête :</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3" data-startfrom="56" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 55;"><span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a><span class="co">//| warning: false</span></span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a><span class="co">//| label: fig-osm-scraping</span></span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a><span class="co">//| fig-cap: Echantillon de donnée OSM</span></span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>data<span class="op">.</span><span class="at">elements</span>[<span class="dv">0</span>]</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-1" data-nodetype="expression">
+
+</div>
+</div>
+</div>
+<p>Evidement il n´y a pas qu’un seul objet. Il y en a exactement ´{python} count(data.elements)´ objet et nous allons traiter tout ça !</p>
+</section>
+<section id="nettoyer-les-données" class="level2 page-columns page-full" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="nettoyer-les-données"><span class="header-section-number">3</span> Nettoyer les données</h2>
+<p>LLes tags disponibles pour les objets ‘hopitaux’ ne sont pas tous interessant et certains méritent des corrections. C’est maintenant que l’on soccupe de cela. Nous pourrons aussi prévoir d’autre modifications plus tard en base de données si nous sommes dans une stratégie orientée ELT et non pas ETL<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>.</p>
+<div id="fc16f0bb" class="cell" data-execution_count="2">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Open and read the JSON file</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">'../data/hospitals_paris.json'</span>, <span class="st">'r'</span>) <span class="im">as</span> <span class="bu">file</span>:</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> json.load(<span class="bu">file</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Convertir les données JSON en DataFrame Pandas</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>hospitals <span class="op">=</span> [</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    (</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"lat"</span>], </span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"lon"</span>], </span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"tags"</span>].get(<span class="st">"name"</span>, np.nan),</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"tags"</span>].get(<span class="st">"amenity"</span>, np.nan),</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"tags"</span>].get(<span class="st">"check_date"</span>, np.nan),</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"tags"</span>].get(<span class="st">"fax"</span>, np.nan),</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"tags"</span>].get(<span class="st">"healthcare"</span>, np.nan),</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"tags"</span>].get(<span class="st">"healthcare:speciality"</span>, np.nan),</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"tags"</span>].get(<span class="st">"operator"</span>, np.nan),</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"tags"</span>].get(<span class="st">"operator:type"</span>, np.nan),</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"tags"</span>].get(<span class="st">"operator:wikidata"</span>, np.nan),</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"tags"</span>].get(<span class="st">"operator:wikipedia"</span>, np.nan),</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"tags"</span>].get(<span class="st">"phone"</span>, np.nan),</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"tags"</span>].get(<span class="st">"ref:FR:FINESS"</span>, np.nan),</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"tags"</span>].get(<span class="st">"ref:FR:SIRET"</span>, np.nan),</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"tags"</span>].get(<span class="st">"type:FR:FINESS"</span>, np.nan),</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>        el[<span class="st">"tags"</span>].get(<span class="st">"website"</span>, np.nan)</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>   </span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> el <span class="kw">in</span> data[<span class="st">"elements"</span>]</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>]</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Afin de rendre la manoeuvre aisée dans des traitements plus complexes à venir, il convient de convertir le flux JSON en Dataframe <strong>Pandas</strong> et comme nous traitons ici des données géographiquea <strong>Geopandas</strong><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> est le format idéal.</p>
+<section id="consulter-les-données-dans-une-table" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="consulter-les-données-dans-une-table"><span class="header-section-number">3.1</span> Consulter les données dans une table</h3>
+<p>L’affichage des données dans une table permet un premier niveau de consultation.</p>
+<div id="e6c8788c" class="cell" data-execution_count="4">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Markdown</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tabulate <span class="im">import</span> tabulate</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>Markdown(tabulate(</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  df, </span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  headers<span class="op">=</span>df.columns</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display cell-output-markdown" data-execution_count="15">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th></th>
+<th style="text-align: left;">name</th>
+<th style="text-align: left;">amenity</th>
+<th style="text-align: left;">check_date</th>
+<th style="text-align: left;">fax</th>
+<th style="text-align: left;">healthcare</th>
+<th style="text-align: left;">healthcare_speciality</th>
+<th style="text-align: left;">operator</th>
+<th style="text-align: left;">operator_type</th>
+<th style="text-align: left;">operator_wikidata</th>
+<th style="text-align: left;">operator_wikipedia</th>
+<th style="text-align: left;">phone</th>
+<th style="text-align: right;">ref_FR_FINESS</th>
+<th style="text-align: right;">ref_FR_SIRET</th>
+<th style="text-align: right;">type_FR_FINESS</th>
+<th style="text-align: left;">website</th>
+<th style="text-align: left;">geometry</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td style="text-align: left;">Clinique Geoffroy Saint-Hilaire</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">2024-03-24</td>
+<td style="text-align: left;">+33 1 43 37 73 98</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">intensive</td>
+<td style="text-align: left;">Ramsay Santé</td>
+<td style="text-align: left;">private</td>
+<td style="text-align: left;">Q3123085</td>
+<td style="text-align: left;">fr:Ramsay Santé</td>
+<td style="text-align: left;">+33 1 44 08 40 00</td>
+<td style="text-align: right;">7.503e+08</td>
+<td style="text-align: right;">5.62098e+13</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: left;">https://clinique-geoffroy-saint-hilaire-paris.ramsaygds.fr/</td>
+<td style="text-align: left;">POINT (2.3549103 48.8435512)</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td style="text-align: left;">Clinique de la Muette</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: right;">7.50301e+08</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">365</td>
+<td style="text-align: left;">https://www.clinique-delamuette.fr/</td>
+<td style="text-align: left;">POINT (2.2777715 48.8604665)</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td style="text-align: left;">Institut Curie</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: right;">7.5016e+08</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">131</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">POINT (2.3435197 48.8426449)</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td style="text-align: left;">Hôpital Marmottan</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: right;">7.50006e+08</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">POINT (2.2912675 48.8781498)</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td style="text-align: left;">Clinique Canal de l’Ourcq</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">2024-03-18</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">Korian</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: right;">7.50003e+08</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">109</td>
+<td style="text-align: left;">http://www.groupe-korian.com/</td>
+<td style="text-align: left;">POINT (2.3878153 48.8856585)</td>
+</tr>
+<tr class="even">
+<td>5</td>
+<td style="text-align: left;">Hôpital de Jour pour Enfants</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">L’Élan retrouvé</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: right;">7.50008e+08</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">365</td>
+<td style="text-align: left;">http://www.elan-retrouve.fr/hopital-jour-enfants-haxo.php</td>
+<td style="text-align: left;">POINT (2.4028142 48.8747235)</td>
+</tr>
+<tr class="odd">
+<td>6</td>
+<td style="text-align: left;">Hôpital de jour Georges Vacola</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: right;">7.5081e+08</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">161</td>
+<td style="text-align: left;">http://www.vacola.asso-gd.fr/</td>
+<td style="text-align: left;">POINT (2.3750552 48.8852964)</td>
+</tr>
+<tr class="even">
+<td>7</td>
+<td style="text-align: left;">Hôpital Maison Blanche</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">+33 1 40 22 12 69</td>
+<td style="text-align: right;">7.50024e+08</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: left;">http://www.ch-maison-blanche.fr/</td>
+<td style="text-align: left;">POINT (2.3503654 48.8726355)</td>
+</tr>
+<tr class="odd">
+<td>8</td>
+<td style="text-align: left;">Clinique Port-Royal</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: right;">7.50039e+08</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">109</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">POINT (2.3399561 48.8355335)</td>
+</tr>
+<tr class="even">
+<td>9</td>
+<td style="text-align: left;">Clinique Internationale du Parc Monceau</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: right;">7.50301e+08</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">365</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">POINT (2.304237 48.8800182)</td>
+</tr>
+<tr class="odd">
+<td>10</td>
+<td style="text-align: left;">Clinique du Trocadéro</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: right;">7.50301e+08</td>
+<td style="text-align: right;">3.50508e+13</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">POINT (2.2809606 48.8604049)</td>
+</tr>
+<tr class="even">
+<td>11</td>
+<td style="text-align: left;">Unité de Soins de Suite de la Fondation Rothschild</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">2023-04-02</td>
+<td style="text-align: left;">+33144687226</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">+33144687298</td>
+<td style="text-align: right;">7.50043e+08</td>
+<td style="text-align: right;">7.75681e+13</td>
+<td style="text-align: right;">109</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">POINT (2.3980305 48.8416639)</td>
+</tr>
+<tr class="odd">
+<td>12</td>
+<td style="text-align: left;">Centre de santé Yvonne Pouzin</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">Ville de Paris</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">+33 1 48 87 49 87</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: left;">https://paris.fr/centresdesante</td>
+<td style="text-align: left;">POINT (2.3573815 48.8647994)</td>
+</tr>
+<tr class="even">
+<td>13</td>
+<td style="text-align: left;">Clinique Bizet</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: left;">https://www.bizet-cliniques-paris.fr/</td>
+<td style="text-align: left;">POINT (2.2969191 48.8675555)</td>
+</tr>
+<tr class="odd">
+<td>14</td>
+<td style="text-align: left;">Cabinet de Kinésithérapie</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">physiotherapist</td>
+<td style="text-align: left;">kinesitherapy</td>
+<td style="text-align: left;">François Gohon</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">09 67 00 23 67</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">POINT (2.3119306 48.8310461)</td>
+</tr>
+<tr class="even">
+<td>15</td>
+<td style="text-align: left;">Clinique du Louvre</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">POINT (2.3411286 48.8592105)</td>
+</tr>
+<tr class="odd">
+<td>16</td>
+<td style="text-align: left;">Centre médical de l’institut Pasteur</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">0145688088</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: left;">https://www.pasteur.fr</td>
+<td style="text-align: left;">POINT (2.3096451 48.8419867)</td>
+</tr>
+<tr class="even">
+<td>17</td>
+<td style="text-align: left;">Institut de la Vue Paris Saint-Joseph</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">hospital</td>
+<td style="text-align: left;">ophthalmology</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: right;">nan</td>
+<td style="text-align: left;">nan</td>
+<td style="text-align: left;">POINT (2.3102741 48.8301458)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="afficher-les-données-sur-une-carte" class="level3 page-columns page-full" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="afficher-les-données-sur-une-carte"><span class="header-section-number">3.2</span> Afficher les données sur une carte</h3>
+<p>Ces donnés peuvent être facilement affichées sur une carte.</p>
 <div class="column-page">
-<div id="cell-fig-map-osm-hospitals" class="cell" data-execution_count="1">
-<div id="fig-map-osm-hospitals" class="cell-output cell-output-display quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="1">
+<div id="cell-fig-map-osm-hospitals" class="cell" data-execution_count="5">
+<div id="fig-map-osm-hospitals" class="cell-output cell-output-display quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="16">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-map-osm-hospitals-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div style="width:100%;"><div style="position:relative;width:100%;height:0;padding-bottom:60%;"><span style="color:#565656">Make this Notebook Trusted to load map: File -&gt; Trust Notebook</span><iframe srcdoc="<!DOCTYPE html>
@@ -135,7 +645,7 @@ Astuce
             <meta name=&quot;viewport&quot; content=&quot;width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; />
             <style>
-                #map_a7cd07be8aeebf415f8a7c768d64fdfd {
+                #map_457fbab391fa239ae223b4c3cda50c18 {
                     position: relative;
                     width: 100.0%;
                     height: 100.0%;
@@ -149,14 +659,14 @@ Astuce
 <body>
     
     
-            <div class=&quot;folium-map&quot; id=&quot;map_a7cd07be8aeebf415f8a7c768d64fdfd&quot; ></div>
+            <div class=&quot;folium-map&quot; id=&quot;map_457fbab391fa239ae223b4c3cda50c18&quot; ></div>
         
 </body>
 <script>
     
     
-            var map_a7cd07be8aeebf415f8a7c768d64fdfd = L.map(
-                &quot;map_a7cd07be8aeebf415f8a7c768d64fdfd&quot;,
+            var map_457fbab391fa239ae223b4c3cda50c18 = L.map(
+                &quot;map_457fbab391fa239ae223b4c3cda50c18&quot;,
                 {
                     center: [48.8566, 2.3522],
                     crs: L.CRS.EPSG3857,
@@ -173,7 +683,7 @@ Astuce
 
         
     
-            var tile_layer_88c0e3d6e52c2ef4cf99a30604ae4dbc = L.tileLayer(
+            var tile_layer_68e05048980135222b355cb3fb3ffdcd = L.tileLayer(
                 &quot;https://tile.openstreetmap.org/{z}/{x}/{y}.png&quot;,
                 {
   &quot;minZoom&quot;: 0,
@@ -190,17 +700,17 @@ Astuce
             );
         
     
-            tile_layer_88c0e3d6e52c2ef4cf99a30604ae4dbc.addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            tile_layer_68e05048980135222b355cb3fb3ffdcd.addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var marker_638254021791a640b7c9a7ef3467d4fa = L.marker(
+            var marker_1d8ab2720d6d18bf37119c1419599ba8 = L.marker(
                 [48.8435512, 2.3549103],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_ab5f1d656fe97e2a8c135ae0c34a0b44 = L.AwesomeMarkers.icon(
+            var icon_a9673bfeca7f07a53b45a87c725fbd7e = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -209,34 +719,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_638254021791a640b7c9a7ef3467d4fa.setIcon(icon_ab5f1d656fe97e2a8c135ae0c34a0b44);
+            marker_1d8ab2720d6d18bf37119c1419599ba8.setIcon(icon_a9673bfeca7f07a53b45a87c725fbd7e);
         
     
-        var popup_76ed06b268bf30da72ee4f8dceddd641 = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_2b0333cef0bd991bab5116c6f9418609 = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_3538980a0ce31ef23fe73f30989cde7a = $(`<div id=&quot;html_3538980a0ce31ef23fe73f30989cde7a&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Clinique Geoffroy Saint-Hilaire</div>`)[0];
-                popup_76ed06b268bf30da72ee4f8dceddd641.setContent(html_3538980a0ce31ef23fe73f30989cde7a);
+                var html_aa79ff60924cbeced874c8e90be85ade = $(`<div id=&quot;html_aa79ff60924cbeced874c8e90be85ade&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Clinique Geoffroy Saint-Hilaire</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> +33 1 44 08 40 00<br>         <b>Fax:</b> +33 1 43 37 73 98<br>         <b>Ref FR FINESS:</b> 750300071<br>         <b>Ref FR SIRET:</b> 56209797200011<br>         <b>Type FR FINESS:</b> 128<br>         <b>Website:</b> <a href=&quot;https://clinique-geoffroy-saint-hilaire-paris.ramsaygds.fr/&quot; target=&quot;_blank&quot;>https://clinique-geoffroy-saint-hilaire-paris.ramsaygds.fr/</a>     </div>     </div>`)[0];
+                popup_2b0333cef0bd991bab5116c6f9418609.setContent(html_aa79ff60924cbeced874c8e90be85ade);
             
         
 
-        marker_638254021791a640b7c9a7ef3467d4fa.bindPopup(popup_76ed06b268bf30da72ee4f8dceddd641)
+        marker_1d8ab2720d6d18bf37119c1419599ba8.bindPopup(popup_2b0333cef0bd991bab5116c6f9418609)
         ;
 
         
     
     
-            var marker_07c5c9c97ca92d20ecd48f43f44f81e9 = L.marker(
+            var marker_cf3715a421cb8e9ffa99a6f088b0dd6b = L.marker(
                 [48.8604665, 2.2777715],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_9d9c71051d4bb25d5322b650574550b9 = L.AwesomeMarkers.icon(
+            var icon_251da26b97a858fba106d938ec3bde98 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -245,34 +756,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_07c5c9c97ca92d20ecd48f43f44f81e9.setIcon(icon_9d9c71051d4bb25d5322b650574550b9);
+            marker_cf3715a421cb8e9ffa99a6f088b0dd6b.setIcon(icon_251da26b97a858fba106d938ec3bde98);
         
     
-        var popup_740cda537a6646e9671d5ff4f3f8349a = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_f0d6160fafbe62b5d3302e5e9527c914 = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_59989bbf328678369d84a05c2b0f7dfe = $(`<div id=&quot;html_59989bbf328678369d84a05c2b0f7dfe&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Clinique de la Muette</div>`)[0];
-                popup_740cda537a6646e9671d5ff4f3f8349a.setContent(html_59989bbf328678369d84a05c2b0f7dfe);
+                var html_73ce0f699d7f240fb37cb02f22047129 = $(`<div id=&quot;html_73ce0f699d7f240fb37cb02f22047129&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Clinique de la Muette</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> nan<br>         <b>Fax:</b> nan<br>         <b>Ref FR FINESS:</b> 750300840<br>         <b>Ref FR SIRET:</b> nan<br>         <b>Type FR FINESS:</b> 365<br>         <b>Website:</b> <a href=&quot;https://www.clinique-delamuette.fr/&quot; target=&quot;_blank&quot;>https://www.clinique-delamuette.fr/</a>     </div>     </div>`)[0];
+                popup_f0d6160fafbe62b5d3302e5e9527c914.setContent(html_73ce0f699d7f240fb37cb02f22047129);
             
         
 
-        marker_07c5c9c97ca92d20ecd48f43f44f81e9.bindPopup(popup_740cda537a6646e9671d5ff4f3f8349a)
+        marker_cf3715a421cb8e9ffa99a6f088b0dd6b.bindPopup(popup_f0d6160fafbe62b5d3302e5e9527c914)
         ;
 
         
     
     
-            var marker_0a068126cb288dc92ab086935612fd70 = L.marker(
+            var marker_d4d04560f2a9fb3111b557cb6dc7bc24 = L.marker(
                 [48.8426449, 2.3435197],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_acbf9dd27053a3805274a16186b63fb7 = L.AwesomeMarkers.icon(
+            var icon_2501831d24a3df6ee259289451d97cec = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -281,34 +793,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_0a068126cb288dc92ab086935612fd70.setIcon(icon_acbf9dd27053a3805274a16186b63fb7);
+            marker_d4d04560f2a9fb3111b557cb6dc7bc24.setIcon(icon_2501831d24a3df6ee259289451d97cec);
         
     
-        var popup_8be694ccca808be743eed40e01262f60 = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_73ec471618c26e06c807d2c8329a3465 = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_9372f1453422b0eccb9a41f84c5bf1a0 = $(`<div id=&quot;html_9372f1453422b0eccb9a41f84c5bf1a0&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Institut Curie</div>`)[0];
-                popup_8be694ccca808be743eed40e01262f60.setContent(html_9372f1453422b0eccb9a41f84c5bf1a0);
+                var html_b209c98110bce235e674c53b6554e83f = $(`<div id=&quot;html_b209c98110bce235e674c53b6554e83f&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Institut Curie</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> nan<br>         <b>Fax:</b> nan<br>         <b>Ref FR FINESS:</b> 750160012<br>         <b>Ref FR SIRET:</b> nan<br>         <b>Type FR FINESS:</b> 131<br>         <b>Website:</b> <a href=&quot;nan&quot; target=&quot;_blank&quot;>nan</a>     </div>     </div>`)[0];
+                popup_73ec471618c26e06c807d2c8329a3465.setContent(html_b209c98110bce235e674c53b6554e83f);
             
         
 
-        marker_0a068126cb288dc92ab086935612fd70.bindPopup(popup_8be694ccca808be743eed40e01262f60)
+        marker_d4d04560f2a9fb3111b557cb6dc7bc24.bindPopup(popup_73ec471618c26e06c807d2c8329a3465)
         ;
 
         
     
     
-            var marker_0e04d15ba4ab2e60da245ee22a6c7378 = L.marker(
+            var marker_fe0f625caba214d35c38c3c2afaa5c41 = L.marker(
                 [48.8781498, 2.2912675],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_1ffda3d0089717ae28397c9ac9fbd97c = L.AwesomeMarkers.icon(
+            var icon_54a17e43ef93c9b43d04ce748843077f = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -317,34 +830,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_0e04d15ba4ab2e60da245ee22a6c7378.setIcon(icon_1ffda3d0089717ae28397c9ac9fbd97c);
+            marker_fe0f625caba214d35c38c3c2afaa5c41.setIcon(icon_54a17e43ef93c9b43d04ce748843077f);
         
     
-        var popup_25c8dd3b4aafb0a095be9cd3a1f15f9d = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_895123d5aa1897e57218b2afc943bcc0 = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_8cd56aeb0f5d99d7af8c54690bd01609 = $(`<div id=&quot;html_8cd56aeb0f5d99d7af8c54690bd01609&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Hôpital Marmottan</div>`)[0];
-                popup_25c8dd3b4aafb0a095be9cd3a1f15f9d.setContent(html_8cd56aeb0f5d99d7af8c54690bd01609);
+                var html_ea820781b9817112b25aa9ed08af69e3 = $(`<div id=&quot;html_ea820781b9817112b25aa9ed08af69e3&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Hôpital Marmottan</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> nan<br>         <b>Fax:</b> nan<br>         <b>Ref FR FINESS:</b> 750006249<br>         <b>Ref FR SIRET:</b> nan<br>         <b>Type FR FINESS:</b> nan<br>         <b>Website:</b> <a href=&quot;nan&quot; target=&quot;_blank&quot;>nan</a>     </div>     </div>`)[0];
+                popup_895123d5aa1897e57218b2afc943bcc0.setContent(html_ea820781b9817112b25aa9ed08af69e3);
             
         
 
-        marker_0e04d15ba4ab2e60da245ee22a6c7378.bindPopup(popup_25c8dd3b4aafb0a095be9cd3a1f15f9d)
+        marker_fe0f625caba214d35c38c3c2afaa5c41.bindPopup(popup_895123d5aa1897e57218b2afc943bcc0)
         ;
 
         
     
     
-            var marker_2661aca1ec18187c8608643482ada6b6 = L.marker(
+            var marker_d0517418c0f101466997c249e167d210 = L.marker(
                 [48.8856585, 2.3878153],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_c6575000812ed1ccd7fb3bd41c22d906 = L.AwesomeMarkers.icon(
+            var icon_3f552295d090d1178089b6e9122c341d = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -353,34 +867,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_2661aca1ec18187c8608643482ada6b6.setIcon(icon_c6575000812ed1ccd7fb3bd41c22d906);
+            marker_d0517418c0f101466997c249e167d210.setIcon(icon_3f552295d090d1178089b6e9122c341d);
         
     
-        var popup_caa3cefe4fd0d834c3fd0cfd42d913ee = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_78d665b92bd12e84c456f7447beb66c9 = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_e4f0cc48470e840cc9e5de415fa1eac8 = $(`<div id=&quot;html_e4f0cc48470e840cc9e5de415fa1eac8&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Clinique Canal de l'Ourcq</div>`)[0];
-                popup_caa3cefe4fd0d834c3fd0cfd42d913ee.setContent(html_e4f0cc48470e840cc9e5de415fa1eac8);
+                var html_0525a77a90d3a65f1a945ab483b6724a = $(`<div id=&quot;html_0525a77a90d3a65f1a945ab483b6724a&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Clinique Canal de l'Ourcq</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> nan<br>         <b>Fax:</b> nan<br>         <b>Ref FR FINESS:</b> 750003378<br>         <b>Ref FR SIRET:</b> nan<br>         <b>Type FR FINESS:</b> 109<br>         <b>Website:</b> <a href=&quot;http://www.groupe-korian.com/&quot; target=&quot;_blank&quot;>http://www.groupe-korian.com/</a>     </div>     </div>`)[0];
+                popup_78d665b92bd12e84c456f7447beb66c9.setContent(html_0525a77a90d3a65f1a945ab483b6724a);
             
         
 
-        marker_2661aca1ec18187c8608643482ada6b6.bindPopup(popup_caa3cefe4fd0d834c3fd0cfd42d913ee)
+        marker_d0517418c0f101466997c249e167d210.bindPopup(popup_78d665b92bd12e84c456f7447beb66c9)
         ;
 
         
     
     
-            var marker_a30a8de2e56f69fbc9f85dca3390baaf = L.marker(
+            var marker_0e1f08231c639721098f37d93b72ee77 = L.marker(
                 [48.8747235, 2.4028142],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_0c31aa10b7aea3f6d9d72186197d2bb6 = L.AwesomeMarkers.icon(
+            var icon_c64ba3827206761a5e085dc2f7c7e215 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -389,34 +904,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_a30a8de2e56f69fbc9f85dca3390baaf.setIcon(icon_0c31aa10b7aea3f6d9d72186197d2bb6);
+            marker_0e1f08231c639721098f37d93b72ee77.setIcon(icon_c64ba3827206761a5e085dc2f7c7e215);
         
     
-        var popup_22a9a719848f0a7423022f7082d09247 = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_aba867fffb5d00eb7892c58a4d3b7041 = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_63d5987496334249a0b32df8e4f3d2b3 = $(`<div id=&quot;html_63d5987496334249a0b32df8e4f3d2b3&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Hôpital de Jour pour Enfants</div>`)[0];
-                popup_22a9a719848f0a7423022f7082d09247.setContent(html_63d5987496334249a0b32df8e4f3d2b3);
+                var html_9e51e20418bc868daac7a0e6e4a09329 = $(`<div id=&quot;html_9e51e20418bc868daac7a0e6e4a09329&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Hôpital de Jour pour Enfants</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> nan<br>         <b>Fax:</b> nan<br>         <b>Ref FR FINESS:</b> 750007999<br>         <b>Ref FR SIRET:</b> nan<br>         <b>Type FR FINESS:</b> 365<br>         <b>Website:</b> <a href=&quot;http://www.elan-retrouve.fr/hopital-jour-enfants-haxo.php&quot; target=&quot;_blank&quot;>http://www.elan-retrouve.fr/hopital-jour-enfants-haxo.php</a>     </div>     </div>`)[0];
+                popup_aba867fffb5d00eb7892c58a4d3b7041.setContent(html_9e51e20418bc868daac7a0e6e4a09329);
             
         
 
-        marker_a30a8de2e56f69fbc9f85dca3390baaf.bindPopup(popup_22a9a719848f0a7423022f7082d09247)
+        marker_0e1f08231c639721098f37d93b72ee77.bindPopup(popup_aba867fffb5d00eb7892c58a4d3b7041)
         ;
 
         
     
     
-            var marker_2273b7a49a9d6f57edfd46e936a0b810 = L.marker(
+            var marker_e7a5b95fd0c3d9eb34d0c294eecfde4e = L.marker(
                 [48.8852964, 2.3750552],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_2272c34c36ce52aec66f5252285d818d = L.AwesomeMarkers.icon(
+            var icon_22ac0cba0ee2b4296329a5e8491d54e5 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -425,34 +941,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_2273b7a49a9d6f57edfd46e936a0b810.setIcon(icon_2272c34c36ce52aec66f5252285d818d);
+            marker_e7a5b95fd0c3d9eb34d0c294eecfde4e.setIcon(icon_22ac0cba0ee2b4296329a5e8491d54e5);
         
     
-        var popup_3ec4f6aefedc0250ac65428938b989c1 = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_da2fcb4de3ebe3df85b31e67edd18db1 = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_d21dbdbb3c758bc5c63c0e39b43dc581 = $(`<div id=&quot;html_d21dbdbb3c758bc5c63c0e39b43dc581&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Hôpital de jour Georges Vacola</div>`)[0];
-                popup_3ec4f6aefedc0250ac65428938b989c1.setContent(html_d21dbdbb3c758bc5c63c0e39b43dc581);
+                var html_da754cdbd887f5c12cb3a5630be4675c = $(`<div id=&quot;html_da754cdbd887f5c12cb3a5630be4675c&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Hôpital de jour Georges Vacola</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> nan<br>         <b>Fax:</b> nan<br>         <b>Ref FR FINESS:</b> 750810384<br>         <b>Ref FR SIRET:</b> nan<br>         <b>Type FR FINESS:</b> 161<br>         <b>Website:</b> <a href=&quot;http://www.vacola.asso-gd.fr/&quot; target=&quot;_blank&quot;>http://www.vacola.asso-gd.fr/</a>     </div>     </div>`)[0];
+                popup_da2fcb4de3ebe3df85b31e67edd18db1.setContent(html_da754cdbd887f5c12cb3a5630be4675c);
             
         
 
-        marker_2273b7a49a9d6f57edfd46e936a0b810.bindPopup(popup_3ec4f6aefedc0250ac65428938b989c1)
+        marker_e7a5b95fd0c3d9eb34d0c294eecfde4e.bindPopup(popup_da2fcb4de3ebe3df85b31e67edd18db1)
         ;
 
         
     
     
-            var marker_d846df13cd5fc5f0663fa0e29e56bcf6 = L.marker(
+            var marker_e8f43995eb2a88e87155c1a29cf006d5 = L.marker(
                 [48.8726355, 2.3503654],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_3b982cfa86ee5c931b1c14ca440551a1 = L.AwesomeMarkers.icon(
+            var icon_fcd50403d6c5a0a3ac08d9e721efc9c7 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -461,34 +978,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_d846df13cd5fc5f0663fa0e29e56bcf6.setIcon(icon_3b982cfa86ee5c931b1c14ca440551a1);
+            marker_e8f43995eb2a88e87155c1a29cf006d5.setIcon(icon_fcd50403d6c5a0a3ac08d9e721efc9c7);
         
     
-        var popup_9d2dc43a62ad68ab45c5390bfeb882f8 = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_d5501c78b3e7c9548592c215588aa5e0 = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_c2e193cb6b3ae95bd89e62dff3349a66 = $(`<div id=&quot;html_c2e193cb6b3ae95bd89e62dff3349a66&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Hôpital Maison Blanche</div>`)[0];
-                popup_9d2dc43a62ad68ab45c5390bfeb882f8.setContent(html_c2e193cb6b3ae95bd89e62dff3349a66);
+                var html_deb4a6a37e9f2c0949ec1fdd26dc81ab = $(`<div id=&quot;html_deb4a6a37e9f2c0949ec1fdd26dc81ab&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Hôpital Maison Blanche</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> +33 1 40 22 12 69<br>         <b>Fax:</b> nan<br>         <b>Ref FR FINESS:</b> 750023749<br>         <b>Ref FR SIRET:</b> nan<br>         <b>Type FR FINESS:</b> nan<br>         <b>Website:</b> <a href=&quot;http://www.ch-maison-blanche.fr/&quot; target=&quot;_blank&quot;>http://www.ch-maison-blanche.fr/</a>     </div>     </div>`)[0];
+                popup_d5501c78b3e7c9548592c215588aa5e0.setContent(html_deb4a6a37e9f2c0949ec1fdd26dc81ab);
             
         
 
-        marker_d846df13cd5fc5f0663fa0e29e56bcf6.bindPopup(popup_9d2dc43a62ad68ab45c5390bfeb882f8)
+        marker_e8f43995eb2a88e87155c1a29cf006d5.bindPopup(popup_d5501c78b3e7c9548592c215588aa5e0)
         ;
 
         
     
     
-            var marker_ac9fd25ef332c993a416d5367cc423e0 = L.marker(
+            var marker_47f45ced0bc62c8e25139e872924cf04 = L.marker(
                 [48.8355335, 2.3399561],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_35fb2e01059c71317959659d783d1fed = L.AwesomeMarkers.icon(
+            var icon_02739249665b6af8434b0a784f050ef5 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -497,34 +1015,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_ac9fd25ef332c993a416d5367cc423e0.setIcon(icon_35fb2e01059c71317959659d783d1fed);
+            marker_47f45ced0bc62c8e25139e872924cf04.setIcon(icon_02739249665b6af8434b0a784f050ef5);
         
     
-        var popup_866153791a779aaeea61d8e502f4b0c6 = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_fcb3328b9a9d441a364bfc4a8946fa3e = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_76af52c464ecf1f2a506a887f057f74e = $(`<div id=&quot;html_76af52c464ecf1f2a506a887f057f74e&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Clinique Port-Royal</div>`)[0];
-                popup_866153791a779aaeea61d8e502f4b0c6.setContent(html_76af52c464ecf1f2a506a887f057f74e);
+                var html_9ace521e93baec6a65b49da1a93970ec = $(`<div id=&quot;html_9ace521e93baec6a65b49da1a93970ec&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Clinique Port-Royal</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> nan<br>         <b>Fax:</b> nan<br>         <b>Ref FR FINESS:</b> 750038739<br>         <b>Ref FR SIRET:</b> nan<br>         <b>Type FR FINESS:</b> 109<br>         <b>Website:</b> <a href=&quot;nan&quot; target=&quot;_blank&quot;>nan</a>     </div>     </div>`)[0];
+                popup_fcb3328b9a9d441a364bfc4a8946fa3e.setContent(html_9ace521e93baec6a65b49da1a93970ec);
             
         
 
-        marker_ac9fd25ef332c993a416d5367cc423e0.bindPopup(popup_866153791a779aaeea61d8e502f4b0c6)
+        marker_47f45ced0bc62c8e25139e872924cf04.bindPopup(popup_fcb3328b9a9d441a364bfc4a8946fa3e)
         ;
 
         
     
     
-            var marker_4918728f88eee115950e81a863607d8a = L.marker(
+            var marker_c9c94ac7e9f32db836532363750101b0 = L.marker(
                 [48.8800182, 2.304237],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_fc37fb2f7e4362b86e36d7aa5f15c023 = L.AwesomeMarkers.icon(
+            var icon_107b9b5e9a37d9d44f20970f6efe442f = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -533,34 +1052,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_4918728f88eee115950e81a863607d8a.setIcon(icon_fc37fb2f7e4362b86e36d7aa5f15c023);
+            marker_c9c94ac7e9f32db836532363750101b0.setIcon(icon_107b9b5e9a37d9d44f20970f6efe442f);
         
     
-        var popup_4384c615427af4d1558e74b43e5e3790 = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_dc90065701453107cff11b2f36395ba8 = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_0c3610029e64501506e52272ccab952e = $(`<div id=&quot;html_0c3610029e64501506e52272ccab952e&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Clinique Internationale du Parc Monceau</div>`)[0];
-                popup_4384c615427af4d1558e74b43e5e3790.setContent(html_0c3610029e64501506e52272ccab952e);
+                var html_34cb8731b35a4c42f3f49233ddc9827e = $(`<div id=&quot;html_34cb8731b35a4c42f3f49233ddc9827e&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Clinique Internationale du Parc Monceau</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> nan<br>         <b>Fax:</b> nan<br>         <b>Ref FR FINESS:</b> 750300915<br>         <b>Ref FR SIRET:</b> nan<br>         <b>Type FR FINESS:</b> 365<br>         <b>Website:</b> <a href=&quot;nan&quot; target=&quot;_blank&quot;>nan</a>     </div>     </div>`)[0];
+                popup_dc90065701453107cff11b2f36395ba8.setContent(html_34cb8731b35a4c42f3f49233ddc9827e);
             
         
 
-        marker_4918728f88eee115950e81a863607d8a.bindPopup(popup_4384c615427af4d1558e74b43e5e3790)
+        marker_c9c94ac7e9f32db836532363750101b0.bindPopup(popup_dc90065701453107cff11b2f36395ba8)
         ;
 
         
     
     
-            var marker_08446f6a42a98125b4afe55df0f6d0d3 = L.marker(
+            var marker_bab446cbfb544908e5e70547360b7a96 = L.marker(
                 [48.8604049, 2.2809606],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_6ba66596a502a7c80d3f4f6a7dcf9548 = L.AwesomeMarkers.icon(
+            var icon_071526295f0e291d8fbd5f1ab0d5ee7c = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -569,34 +1089,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_08446f6a42a98125b4afe55df0f6d0d3.setIcon(icon_6ba66596a502a7c80d3f4f6a7dcf9548);
+            marker_bab446cbfb544908e5e70547360b7a96.setIcon(icon_071526295f0e291d8fbd5f1ab0d5ee7c);
         
     
-        var popup_a0cb5a4ff8a91c1bf284372578736fee = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_a0dc16350e29dc349e02b9de1a472800 = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_7fb1acdf7b0f2cf0a0ff9d81244db404 = $(`<div id=&quot;html_7fb1acdf7b0f2cf0a0ff9d81244db404&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Clinique du Trocadéro</div>`)[0];
-                popup_a0cb5a4ff8a91c1bf284372578736fee.setContent(html_7fb1acdf7b0f2cf0a0ff9d81244db404);
+                var html_83e7a8a11636086ad49a4f13b09313e3 = $(`<div id=&quot;html_83e7a8a11636086ad49a4f13b09313e3&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Clinique du Trocadéro</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> nan<br>         <b>Fax:</b> nan<br>         <b>Ref FR FINESS:</b> 750300881<br>         <b>Ref FR SIRET:</b> 35050813100025<br>         <b>Type FR FINESS:</b> 128<br>         <b>Website:</b> <a href=&quot;nan&quot; target=&quot;_blank&quot;>nan</a>     </div>     </div>`)[0];
+                popup_a0dc16350e29dc349e02b9de1a472800.setContent(html_83e7a8a11636086ad49a4f13b09313e3);
             
         
 
-        marker_08446f6a42a98125b4afe55df0f6d0d3.bindPopup(popup_a0cb5a4ff8a91c1bf284372578736fee)
+        marker_bab446cbfb544908e5e70547360b7a96.bindPopup(popup_a0dc16350e29dc349e02b9de1a472800)
         ;
 
         
     
     
-            var marker_1b9f96a8de3fe33c54bcc1af57e5ad05 = L.marker(
+            var marker_d16e48a775cdcbf90af24e4e3c504a37 = L.marker(
                 [48.8416639, 2.3980305],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_54dd770fd8a855e182ee3ae20c0e98b6 = L.AwesomeMarkers.icon(
+            var icon_a36a00dcdeb11cb374577e8209a1b8f5 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -605,34 +1126,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_1b9f96a8de3fe33c54bcc1af57e5ad05.setIcon(icon_54dd770fd8a855e182ee3ae20c0e98b6);
+            marker_d16e48a775cdcbf90af24e4e3c504a37.setIcon(icon_a36a00dcdeb11cb374577e8209a1b8f5);
         
     
-        var popup_8c38e0380a385e9ed5d2ec34e761d471 = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_c58b2254de2f5e1e48ebb2c7a27b6d65 = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_087daec22c4b4b21fa8fd3a89cef3a99 = $(`<div id=&quot;html_087daec22c4b4b21fa8fd3a89cef3a99&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Unité de Soins de Suite de la Fondation Rothschild</div>`)[0];
-                popup_8c38e0380a385e9ed5d2ec34e761d471.setContent(html_087daec22c4b4b21fa8fd3a89cef3a99);
+                var html_9c9922f6ba78433ce8be9fb65767b47f = $(`<div id=&quot;html_9c9922f6ba78433ce8be9fb65767b47f&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Unité de Soins de Suite de la Fondation Rothschild</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> +33144687298<br>         <b>Fax:</b> +33144687226<br>         <b>Ref FR FINESS:</b> 750042830<br>         <b>Ref FR SIRET:</b> 77568109100127<br>         <b>Type FR FINESS:</b> 109<br>         <b>Website:</b> <a href=&quot;nan&quot; target=&quot;_blank&quot;>nan</a>     </div>     </div>`)[0];
+                popup_c58b2254de2f5e1e48ebb2c7a27b6d65.setContent(html_9c9922f6ba78433ce8be9fb65767b47f);
             
         
 
-        marker_1b9f96a8de3fe33c54bcc1af57e5ad05.bindPopup(popup_8c38e0380a385e9ed5d2ec34e761d471)
+        marker_d16e48a775cdcbf90af24e4e3c504a37.bindPopup(popup_c58b2254de2f5e1e48ebb2c7a27b6d65)
         ;
 
         
     
     
-            var marker_3b4990438e9c74eda52d8c8040a70b91 = L.marker(
+            var marker_a6097cc3b68896dffc3491f125fe27e0 = L.marker(
                 [48.8647994, 2.3573815],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_9b87a680f0d4ae3960e4cecbaf999463 = L.AwesomeMarkers.icon(
+            var icon_fe8420cc839c1c89391dd3d29e1a2d8e = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -641,34 +1163,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_3b4990438e9c74eda52d8c8040a70b91.setIcon(icon_9b87a680f0d4ae3960e4cecbaf999463);
+            marker_a6097cc3b68896dffc3491f125fe27e0.setIcon(icon_fe8420cc839c1c89391dd3d29e1a2d8e);
         
     
-        var popup_94d70fd37746a1d31fe909f16607477f = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_64e2b1e3428bae58013daddd587ba34b = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_05d28b3cb8e20691698592257bc2f20d = $(`<div id=&quot;html_05d28b3cb8e20691698592257bc2f20d&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Centre de santé Yvonne Pouzin</div>`)[0];
-                popup_94d70fd37746a1d31fe909f16607477f.setContent(html_05d28b3cb8e20691698592257bc2f20d);
+                var html_fc33e57e0cf03ed321a8aa94abd1e4b8 = $(`<div id=&quot;html_fc33e57e0cf03ed321a8aa94abd1e4b8&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Centre de santé Yvonne Pouzin</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> +33 1 48 87 49 87<br>         <b>Fax:</b> nan<br>         <b>Ref FR FINESS:</b> nan<br>         <b>Ref FR SIRET:</b> nan<br>         <b>Type FR FINESS:</b> nan<br>         <b>Website:</b> <a href=&quot;https://paris.fr/centresdesante&quot; target=&quot;_blank&quot;>https://paris.fr/centresdesante</a>     </div>     </div>`)[0];
+                popup_64e2b1e3428bae58013daddd587ba34b.setContent(html_fc33e57e0cf03ed321a8aa94abd1e4b8);
             
         
 
-        marker_3b4990438e9c74eda52d8c8040a70b91.bindPopup(popup_94d70fd37746a1d31fe909f16607477f)
+        marker_a6097cc3b68896dffc3491f125fe27e0.bindPopup(popup_64e2b1e3428bae58013daddd587ba34b)
         ;
 
         
     
     
-            var marker_6b3e42a694d09eb219a2fc2c61ff2d73 = L.marker(
+            var marker_8cf76abeab8a04263d7ecb659ba43296 = L.marker(
                 [48.8675555, 2.2969191],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_c8e7ae7d2a4b860e271d3972949e00c2 = L.AwesomeMarkers.icon(
+            var icon_ef1e5188f1d227552b1f3e82181ffc25 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -677,34 +1200,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_6b3e42a694d09eb219a2fc2c61ff2d73.setIcon(icon_c8e7ae7d2a4b860e271d3972949e00c2);
+            marker_8cf76abeab8a04263d7ecb659ba43296.setIcon(icon_ef1e5188f1d227552b1f3e82181ffc25);
         
     
-        var popup_5982fb865703df754e69edcaf1e3fd8e = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_13f2e9eb12952a85b8236773e1995883 = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_47829eda2ec9428d65365037cdc9a949 = $(`<div id=&quot;html_47829eda2ec9428d65365037cdc9a949&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Clinique Bizet</div>`)[0];
-                popup_5982fb865703df754e69edcaf1e3fd8e.setContent(html_47829eda2ec9428d65365037cdc9a949);
+                var html_9fe3ce4ca7fbbef161c0b80047a46d93 = $(`<div id=&quot;html_9fe3ce4ca7fbbef161c0b80047a46d93&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Clinique Bizet</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> nan<br>         <b>Fax:</b> nan<br>         <b>Ref FR FINESS:</b> nan<br>         <b>Ref FR SIRET:</b> nan<br>         <b>Type FR FINESS:</b> nan<br>         <b>Website:</b> <a href=&quot;https://www.bizet-cliniques-paris.fr/&quot; target=&quot;_blank&quot;>https://www.bizet-cliniques-paris.fr/</a>     </div>     </div>`)[0];
+                popup_13f2e9eb12952a85b8236773e1995883.setContent(html_9fe3ce4ca7fbbef161c0b80047a46d93);
             
         
 
-        marker_6b3e42a694d09eb219a2fc2c61ff2d73.bindPopup(popup_5982fb865703df754e69edcaf1e3fd8e)
+        marker_8cf76abeab8a04263d7ecb659ba43296.bindPopup(popup_13f2e9eb12952a85b8236773e1995883)
         ;
 
         
     
     
-            var marker_b01bab9abf6de4a276ddc67c1030c1f4 = L.marker(
+            var marker_a928d88b3e50bf8bfb04bdfd17f98b71 = L.marker(
                 [48.8310461, 2.3119306],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_a9833c4121604159af73eee5ba2865a8 = L.AwesomeMarkers.icon(
+            var icon_c28fbb8b1b673e28b88f02f6e127b984 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -713,34 +1237,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_b01bab9abf6de4a276ddc67c1030c1f4.setIcon(icon_a9833c4121604159af73eee5ba2865a8);
+            marker_a928d88b3e50bf8bfb04bdfd17f98b71.setIcon(icon_c28fbb8b1b673e28b88f02f6e127b984);
         
     
-        var popup_5e81b48a1e4e90e7626a129394337cd1 = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_6d0fb67cdfee9cc37cbca88c76946e41 = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_acdccd74193ae84078c8efa9ea9aaba2 = $(`<div id=&quot;html_acdccd74193ae84078c8efa9ea9aaba2&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Cabinet de Kinésithérapie</div>`)[0];
-                popup_5e81b48a1e4e90e7626a129394337cd1.setContent(html_acdccd74193ae84078c8efa9ea9aaba2);
+                var html_5029f062e768532741c7835b3e1a475b = $(`<div id=&quot;html_5029f062e768532741c7835b3e1a475b&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Cabinet de Kinésithérapie</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> 09 67 00 23 67<br>         <b>Fax:</b> nan<br>         <b>Ref FR FINESS:</b> nan<br>         <b>Ref FR SIRET:</b> nan<br>         <b>Type FR FINESS:</b> nan<br>         <b>Website:</b> <a href=&quot;nan&quot; target=&quot;_blank&quot;>nan</a>     </div>     </div>`)[0];
+                popup_6d0fb67cdfee9cc37cbca88c76946e41.setContent(html_5029f062e768532741c7835b3e1a475b);
             
         
 
-        marker_b01bab9abf6de4a276ddc67c1030c1f4.bindPopup(popup_5e81b48a1e4e90e7626a129394337cd1)
+        marker_a928d88b3e50bf8bfb04bdfd17f98b71.bindPopup(popup_6d0fb67cdfee9cc37cbca88c76946e41)
         ;
 
         
     
     
-            var marker_63829d0643e782bdcb432750cd07de2f = L.marker(
+            var marker_bb9bef9201de960dec07d7d11cb16043 = L.marker(
                 [48.8592105, 2.3411286],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_0d261128ccd07a4bb14eb9bd57085c22 = L.AwesomeMarkers.icon(
+            var icon_73f9c8cf6968505342310b2e0b871247 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -749,34 +1274,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_63829d0643e782bdcb432750cd07de2f.setIcon(icon_0d261128ccd07a4bb14eb9bd57085c22);
+            marker_bb9bef9201de960dec07d7d11cb16043.setIcon(icon_73f9c8cf6968505342310b2e0b871247);
         
     
-        var popup_ae708511d4c08f67c345242d6eabbd26 = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_4be44b6e053465759d0146f1323ab03f = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_faf801680603773225e634f0c76c4786 = $(`<div id=&quot;html_faf801680603773225e634f0c76c4786&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Clinique du Louvre</div>`)[0];
-                popup_ae708511d4c08f67c345242d6eabbd26.setContent(html_faf801680603773225e634f0c76c4786);
+                var html_2139cac24581383765ff97bb522063b4 = $(`<div id=&quot;html_2139cac24581383765ff97bb522063b4&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Clinique du Louvre</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> nan<br>         <b>Fax:</b> nan<br>         <b>Ref FR FINESS:</b> nan<br>         <b>Ref FR SIRET:</b> nan<br>         <b>Type FR FINESS:</b> nan<br>         <b>Website:</b> <a href=&quot;nan&quot; target=&quot;_blank&quot;>nan</a>     </div>     </div>`)[0];
+                popup_4be44b6e053465759d0146f1323ab03f.setContent(html_2139cac24581383765ff97bb522063b4);
             
         
 
-        marker_63829d0643e782bdcb432750cd07de2f.bindPopup(popup_ae708511d4c08f67c345242d6eabbd26)
+        marker_bb9bef9201de960dec07d7d11cb16043.bindPopup(popup_4be44b6e053465759d0146f1323ab03f)
         ;
 
         
     
     
-            var marker_363e3198b1ec9d5b7061cd08c40f560d = L.marker(
+            var marker_b84af1941eb6da98a8a0db3770c48c58 = L.marker(
                 [48.8419867, 2.3096451],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_77885d4feb33da3bb3c9bd8362d735b1 = L.AwesomeMarkers.icon(
+            var icon_67aa677797c4b85e29bfe7b03a28aa43 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -785,34 +1311,35 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_363e3198b1ec9d5b7061cd08c40f560d.setIcon(icon_77885d4feb33da3bb3c9bd8362d735b1);
+            marker_b84af1941eb6da98a8a0db3770c48c58.setIcon(icon_67aa677797c4b85e29bfe7b03a28aa43);
         
     
-        var popup_037fcc6f1768bd9d754b917601bf89c8 = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_e438c9e8bb9cab012b279acd595eef8f = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_ec7c3b01e9b536257f48241e393771c7 = $(`<div id=&quot;html_ec7c3b01e9b536257f48241e393771c7&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Centre médical de l'institut Pasteur</div>`)[0];
-                popup_037fcc6f1768bd9d754b917601bf89c8.setContent(html_ec7c3b01e9b536257f48241e393771c7);
+                var html_28c92b2e64a94324840c6aab6f8a8a57 = $(`<div id=&quot;html_28c92b2e64a94324840c6aab6f8a8a57&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Centre médical de l'institut Pasteur</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> 0145688088<br>         <b>Fax:</b> nan<br>         <b>Ref FR FINESS:</b> nan<br>         <b>Ref FR SIRET:</b> nan<br>         <b>Type FR FINESS:</b> nan<br>         <b>Website:</b> <a href=&quot;https://www.pasteur.fr&quot; target=&quot;_blank&quot;>https://www.pasteur.fr</a>     </div>     </div>`)[0];
+                popup_e438c9e8bb9cab012b279acd595eef8f.setContent(html_28c92b2e64a94324840c6aab6f8a8a57);
             
         
 
-        marker_363e3198b1ec9d5b7061cd08c40f560d.bindPopup(popup_037fcc6f1768bd9d754b917601bf89c8)
+        marker_b84af1941eb6da98a8a0db3770c48c58.bindPopup(popup_e438c9e8bb9cab012b279acd595eef8f)
         ;
 
         
     
     
-            var marker_913dbb2ecde0130109ab57c74f7b4401 = L.marker(
+            var marker_67b686e9cc5b4ad0bd13c399afa966c3 = L.marker(
                 [48.8301458, 2.3102741],
                 {
 }
-            ).addTo(map_a7cd07be8aeebf415f8a7c768d64fdfd);
+            ).addTo(map_457fbab391fa239ae223b4c3cda50c18);
         
     
-            var icon_2c70bb6d82d999c5e5d6c1d1a06469c8 = L.AwesomeMarkers.icon(
+            var icon_55cf3d861de841b563ecd9c1dd4b2cb3 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;blue&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -821,21 +1348,22 @@ Astuce
   &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
 }
             );
-            marker_913dbb2ecde0130109ab57c74f7b4401.setIcon(icon_2c70bb6d82d999c5e5d6c1d1a06469c8);
+            marker_67b686e9cc5b4ad0bd13c399afa966c3.setIcon(icon_55cf3d861de841b563ecd9c1dd4b2cb3);
         
     
-        var popup_4a99c735d741773772ec8a459672913b = L.popup({
-  &quot;maxWidth&quot;: &quot;100%&quot;,
+        var popup_043ed18e6c35f147f4e7bf0423897a42 = L.popup({
+  &quot;maxWidth&quot;: 500,
+  &quot;minWidth&quot;: 500,
 });
 
         
             
-                var html_13ff6cf40f8c1520dd10a08e4ac50f5b = $(`<div id=&quot;html_13ff6cf40f8c1520dd10a08e4ac50f5b&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>Institut de la Vue Paris Saint-Joseph</div>`)[0];
-                popup_4a99c735d741773772ec8a459672913b.setContent(html_13ff6cf40f8c1520dd10a08e4ac50f5b);
+                var html_de53a762e46bf66aa3144da329a73a45 = $(`<div id=&quot;html_de53a762e46bf66aa3144da329a73a45&quot; style=&quot;width: 100.0%; height: 100.0%;&quot;>     <div style=&quot;text-align: center;&quot;>         <h1>Institut de la Vue Paris Saint-Joseph</h1>     </div>     <div style=&quot;text-align: left;&quot;>         <b>Phone:</b> nan<br>         <b>Fax:</b> nan<br>         <b>Ref FR FINESS:</b> nan<br>         <b>Ref FR SIRET:</b> nan<br>         <b>Type FR FINESS:</b> nan<br>         <b>Website:</b> <a href=&quot;nan&quot; target=&quot;_blank&quot;>nan</a>     </div>     </div>`)[0];
+                popup_043ed18e6c35f147f4e7bf0423897a42.setContent(html_de53a762e46bf66aa3144da329a73a45);
             
         
 
-        marker_913dbb2ecde0130109ab57c74f7b4401.bindPopup(popup_4a99c735d741773772ec8a459672913b)
+        marker_67b686e9cc5b4ad0bd13c399afa966c3.bindPopup(popup_043ed18e6c35f147f4e7bf0423897a42)
         ;
 
         
@@ -843,17 +1371,151 @@ Astuce
 </script>
 </html>" style="position:absolute;width:100%;height:100%;left:0;top:0;border:none !important;" allowfullscreen="" webkitallowfullscreen="" mozallowfullscreen=""></iframe></div></div>
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-map-osm-hospitals-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-map-osm-hospitals-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Carte des POI issus d´OSM
 </figcaption>
 </figure>
 </div>
 </div>
+<section id="cartographie-dilot-de-chaleur" class="level3" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="cartographie-dilot-de-chaleur"><span class="header-section-number">3.3</span> Cartographie d’ilot de chaleur</h3>
+<div id="cell-fig-heatmap-osm-hospitals" class="cell" data-execution_count="6">
+<div id="fig-heatmap-osm-hospitals" class="cell-output cell-output-display quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="17">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-heatmap-osm-hospitals-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div style="width:100%;"><div style="position:relative;width:100%;height:0;padding-bottom:60%;"><span style="color:#565656">Make this Notebook Trusted to load map: File -&gt; Trust Notebook</span><iframe srcdoc="<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv=&quot;content-type&quot; content=&quot;text/html; charset=UTF-8&quot; />
+    
+        <script>
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        </script>
+    
+    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
+    <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
+    <script src=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js&quot;></script>
+    <script src=&quot;https://code.jquery.com/jquery-3.7.1.min.js&quot;></script>
+    <script src=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js&quot;></script>
+    <script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js&quot;></script>
+    <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css&quot;/>
+    <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css&quot;/>
+    <link rel=&quot;stylesheet&quot; href=&quot;https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css&quot;/>
+    <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css&quot;/>
+    <link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css&quot;/>
+    <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css&quot;/>
+    
+            <meta name=&quot;viewport&quot; content=&quot;width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; />
+            <style>
+                #map_7e2e975d4b817614ab289036e66d9c9c {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+        
+    <script src=&quot;https://cdn.jsdelivr.net/gh/python-visualization/folium@main/folium/templates/leaflet_heat.min.js&quot;></script>
+</head>
+<body>
+    
+    
+            <div class=&quot;folium-map&quot; id=&quot;map_7e2e975d4b817614ab289036e66d9c9c&quot; ></div>
+        
+</body>
+<script>
+    
+    
+            var map_7e2e975d4b817614ab289036e66d9c9c = L.map(
+                &quot;map_7e2e975d4b817614ab289036e66d9c9c&quot;,
+                {
+                    center: [48.8566, 2.3522],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  &quot;zoom&quot;: 12,
+  &quot;zoomControl&quot;: true,
+  &quot;preferCanvas&quot;: false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_f3f64ae3b1b01286a4016aaa01d636e6 = L.tileLayer(
+                &quot;https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png&quot;,
+                {
+  &quot;minZoom&quot;: 0,
+  &quot;maxZoom&quot;: 20,
+  &quot;maxNativeZoom&quot;: 20,
+  &quot;noWrap&quot;: false,
+  &quot;attribution&quot;: &quot;\u0026copy; \u003ca href=\&quot;https://www.openstreetmap.org/copyright\&quot;\u003eOpenStreetMap\u003c/a\u003e contributors \u0026copy; \u003ca href=\&quot;https://carto.com/attributions\&quot;\u003eCARTO\u003c/a\u003e&quot;,
+  &quot;subdomains&quot;: &quot;abcd&quot;,
+  &quot;detectRetina&quot;: false,
+  &quot;tms&quot;: false,
+  &quot;opacity&quot;: 1,
+}
+
+            );
+        
+    
+            tile_layer_f3f64ae3b1b01286a4016aaa01d636e6.addTo(map_7e2e975d4b817614ab289036e66d9c9c);
+        
+    
+            var heat_map_ef8cf8c336c782ebe894038fe8e51e8d = L.heatLayer(
+                [[48.8435512, 2.3549103], [48.8604665, 2.2777715], [48.8426449, 2.3435197], [48.8781498, 2.2912675], [48.8856585, 2.3878153], [48.8747235, 2.4028142], [48.8852964, 2.3750552], [48.8726355, 2.3503654], [48.8355335, 2.3399561], [48.8800182, 2.304237], [48.8604049, 2.2809606], [48.8416639, 2.3980305], [48.8647994, 2.3573815], [48.8675555, 2.2969191], [48.8310461, 2.3119306], [48.8592105, 2.3411286], [48.8419867, 2.3096451], [48.8301458, 2.3102741]],
+                {
+  &quot;minOpacity&quot;: 0.5,
+  &quot;maxZoom&quot;: 18,
+  &quot;radius&quot;: 25,
+  &quot;blur&quot;: 15,
+}
+            );
+        
+    
+            heat_map_ef8cf8c336c782ebe894038fe8e51e8d.addTo(map_7e2e975d4b817614ab289036e66d9c9c);
+        
+</script>
+</html>" style="position:absolute;width:100%;height:100%;left:0;top:0;border:none !important;" allowfullscreen="" webkitallowfullscreen="" mozallowfullscreen=""></iframe></div></div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-heatmap-osm-hospitals-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Ilôt de chaleur des hôpitaux et cliniques de Paris
+</figcaption>
+</figure>
+</div>
 </div>
 </section>
+</div>
+</section>
+</section>
 
-</main>
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Notes de bas de page</h2>
+
+<ol>
+<li id="fn1"><p><a href="https://aws.amazon.com/fr/compare/the-difference-between-etl-and-elt/">Documentation ELT vs ETL</a><a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><a href="https://geopandas.org/en/stable/index.html">GeoPandas documentation</a><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main>
 <!-- /main column -->
+<script type="ojs-module-contents">
+eyJjb250ZW50cyI6W3sibWV0aG9kTmFtZSI6ImludGVycHJldCIsImNlbGxOYW1lIjoib2pzLWNlbGwtMSIsImlubGluZSI6ZmFsc2UsInNvdXJjZSI6IlxuLy98IHdhcm5pbmc6IGZhbHNlXG4vL3wgbGFiZWw6IGZpZy1vc20tc2NyYXBpbmdcbi8vfCBmaWctY2FwOiBFY2hhbnRpbGxvbiBkZSBkb25uw6llIE9TTVxuZGF0YS5lbGVtZW50c1swXVxuIn1dfQ==
+</script>
+<script type="module">
+if (window.location.protocol === "file:") { alert("The OJS runtime does not work with file:// URLs. Please use a web server to view this document."); }
+window._ojs.paths.runtimeToDoc = "../../..";
+window._ojs.paths.runtimeToRoot = "../../../..";
+window._ojs.paths.docToRoot = "..";
+window._ojs.selfContained = false;
+window._ojs.runtime.interpretFromScriptTags();
+</script>
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
